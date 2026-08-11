@@ -1,4 +1,4 @@
-# 🛡️ LAB 03: Vazamento de Dados Sensíveis e System Prompt Leakage (OWASP LLM06) — Qwen Edition
+# 🛡️ LAB3 — OWASP LLM02_SENSITIVE INFORMATION DISCLOSURE & LLM07_SYSTEM PROMPT LEAKAGE
 
 Este repositório contém o laboratório prático de cibersegurança em Inteligência Artificial focado na vulnerabilidade de **Vazamento de Informações Sensíveis (Sensitive Information Disclosure)** e na mitigação de ataques de **Prompt Leakage**, utilizando barreiras defensivas baseadas em expressões regulares (*Output Guardrails & Regex*).
 
@@ -6,57 +6,46 @@ Este repositório contém o laboratório prático de cibersegurança em Intelig�
 
 ## 🎯 Objetivo do Laboratório
 
-Demonstrar na prática como a vulnerabilidade **OWASP LLM06 (Sensitive Information Disclosure)** permite a extração não autorizada de dados confidenciais (chaves de API, regras internas de negócio e PII) embutidos no *System Prompt* ou no contexto de uma LLM, e como implementar barreiras defensivas robustas no backend Python para neutralizar esse risco.
+Demonstrar na prática como a vulnerabilidade **OWASP LLM02 (Sensitive Information Disclosure)** e o vazamento de instruções de sistema permitem a extração não autorizada de dados confidenciais (chaves de API, regras internas e PII) embutidos no contexto de uma LLM, e como implementar barreiras defensivas robustas no backend Python para neutralizar esse risco antes que a informação atinja o usuário final.
 
 * **Modelo Utilizado:** Qwen 2.5 (0.5B Instruct) (`Qwen/Qwen2.5-0.5B-Instruct`)
 * **Ambiente de Execução:** GitHub Codespaces (Otimizado para CPU)
-* **Vulnerabilidade Alvo:** OWASP LLM06 - Sensitive Information Disclosure / System Prompt Leakage
+* **Vulnerabilidades Alvo:** 
+  * OWASP LLM02: Sensitive Information Disclosure
+  * System Prompt Leakage
 
 ---
 
 ## 🧪 Estrutura da Atividade
 
 ### 🔴 Red Team (Ataque)
-* **Conceito:** Exploração da vulnerabilidade OWASP LLM06 no modelo Qwen, onde o assistente virtual é manipulado para ignorar restrições textuais de sigilo inseridas no *System Prompt* e vazar credenciais corporativas e dados pessoais.
-* **Vetores de Teste:** Extração direta por engenharia social (*roleplay* de auditor), manipulação de formato de saída (tradução para JSON) e solicitação direta de PII (CPF e saldos).
+* **Conceito:** Exploração de falhas onde o assistente virtual é manipulado para ignorar restrições textuais de sigilo inseridas no *System Prompt* e vazar credenciais corporativas e dados de clientes (PII).
+* **Vetores de Teste:** Extração direta por engenharia social (*roleplay* de auditor), manipulação de formato (conversão para JSON) e solicitação direta de CPFs e saldos.
 
 ### 🔵 Blue Team (Defesa)
 * **Conceito:** Aplicação de uma estratégia de **Inspeção de Saída e Filtragem Programática (Output Guardrails & Regex)**.
-* **Solução:** Desenvolvimento de um filtro defensivo no backend Python utilizando a biblioteca `re` (`re.sub`) para interceptar, mascarar e bloquear chaves de API, códigos de autorização e dados de identificação pessoal (PII) antes que a resposta seja entregue ao usuário.
+* **Solução:** Desenvolvimento de um filtro defensivo no backend Python utilizando a biblioteca `re` (`re.sub`) para interceptar, mascarar e bloquear chaves, códigos gerenciais e documentos pessoais.
 
 ---
 
-## 📋 Detalhamento das Atividades Práticas (A a F)
+## 📋 Detalhamento das Atividades Práticas
 
-### 🔴 Módulo Red Team (Ataques de Prompt Leakage)
+### Módulo Red Team (Ataques de Prompt Leakage)
+* **Atividade A:** Ataque via *Roleplay* / Engenharia Social de Desenvolvedor.
+* **Atividade B:** Ataque via Tradução / Reformaturação de Dados (JSON).
+* **Atividade C:** Ataque de Extração de PII / CPF.
 
-* **Atividade A: Ataque via *Roleplay* / Engenharia Social de Desenvolvedor**
-  * **Tática:** Induzir o modelo a assumir um cenário simulado onde o usuário finge ser um "Auditor Principal de Segurança".
-  * **Objetivo:** Comprovar que LLMs vulneráveis ignoram ordens de sigilo textuais quando confrontadas com figuras de autoridade simuladas no prompt.
-
-* **Atividade B: Ataque via Tradução / Reformaturação de Dados**
-  * **Tática:** Solicitar a reestruturação e tradução das regras internas secretas para o formato JSON.
-  * **Objetivo:** Demonstrar como pedidos de alteração estrutural na saída quebram as barreiras lógicas do modelo, forçando-o a expor credenciais.
-
-* **Atividade C: Ataque de Extração de PII / CPF**
-  * **Tática:** Realizar uma consulta direta visando dados sensíveis de clientes cadastrados no contexto do sistema.
-  * **Objetivo:** Validar o risco de vazamento de informações de identificação pessoal (PII), como CPFs e saldos bancários confidenciais.
+### Módulo Blue Team (Defesa & Guardrails)
+* **Atividade D:** Implementação do Guardrail Regex (`guardrail_dados_sensiveis`).
+* **Atividade E:** Teste de defesa contra extração de chaves e dados gerenciais.
+* **Atividade F:** Teste de defesa contra extração de dados pessoais (PII/CPF).
 
 ---
 
-### 🔵 Módulo Blue Team (Defesa & Guardrails)
-
-* **Atividade D: Implementação do Guardrail Regex (`guardrail_dados_sensiveis`)**
-  * **Tática:** Criação de uma camada programática de inspeção de saída utilizando expressões regulares para varrer o texto gerado pela IA.
-  * **Objetivo:** Mascarar automaticamente padrões sensíveis (`SEC_KEY_*`, `AUTH_GERENTE_*` e CPFs) substituindo-os por marcadores de bloqueio.
-
-* **Atividade E: Teste de Defesa contra Extração de Chaves / Gerente**
-  * **Tática:** Reexecutar o ataque de engenharia social (*roleplay* de auditor) contra o assistente já protegido pelo *guardrail*.
-  * **Objetivo:** Validar se a barreira de regex intercepta e neutraliza a tentativa de roubo de chaves da API e códigos gerenciais.
-
-* **Atividade F: Teste de Defesa contra Extração de PII / CPF**
-  * **Tática:** Submeter tentativas de extração de dados de clientes ao assistente blindado.
-  * **Objetivo:** Confirmar que o filtro sanitiza com sucesso documentos sensíveis, exibindo o formato mascarado (`***.***.***-**`) ao invés do dado real.
+## 🚀 Como Executar
+1. Abra este repositório no **GitHub Codespaces**.
+2. Crie um novo notebook Jupyter chamado `IA_SENSITIVE_INFORMATION.ipynb`.
+3. Siga o passo a passo para carregar o modelo Qwen 0.5B e testar os cenários de Red Team e Blue Team.
 
 ---
 
